@@ -1,0 +1,95 @@
+    SELECT
+    {% if select == '*' or select|length == 0 %}
+        *
+    {% else %}
+        {% for select_key, select_value in select.items() %}
+            {% if select_value.startswith('\\') %}
+                {{ select_value[1:] }} AS `{{ select_key }}`
+            {% else %}
+                {% if '(' in select_value %}
+                    {% if '.' in select_value %}
+                        {{ select_value.replace('.', '.`').replace(')', '`)') }} AS `{{ select_key }}`
+                    {% else %}
+                        {{ select_value.replace('(', '(`').replace(')', '`)') }} AS `{{ select_key }}`
+                    {% endif %}
+                {% else %}
+                    {% if '.' in select_value %}
+                        {{ select_value.replace('.', '.`') }}` AS `{{ select_key }}`
+                    {% else %}
+                        `{{ select_value }}` AS `{{ select_key }}`
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+            {% if loop.index < loop.length %}
+                ,
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    
+    FROM {{ from }}
+    
+    {% if join %}
+        {% for join_table, join_clause in join.items() %}
+            {{ join_clause.type }} 
+            {% if join_clause.query %}
+                ({{ join_clause.query }})
+            {% endif %}
+            {{ join_table }} ON {{ join_clause.on }}
+        {% endfor %}
+    {% endif %}
+    
+    {% if where %}
+        {% for where_clause in where %}
+            {% if loop.index == 1 %}
+                WHERE
+            {% else %}
+                AND
+            {% endif %}
+            
+            {% if where_clause.column %}
+                {% if '.' in where_clause.column %}
+                    {{ where_clause.column.replace('.', '.`') }}`
+                {% else %}
+                    `{{ where_clause.column }}`
+                {% endif %}
+            {% endif %}
+            {{ where_clause.operator }} {{ where_clause.value }}
+        {% endfor %}
+    {% endif %}
+    
+    {% if group_by %}
+        GROUP BY
+        {% for column in group_by %}
+            {% if '.' in column %}
+                {{ column.replace('.', '.`') }}`
+            {% else %}
+                `{{ column }}`
+            {% endif %}
+            {% if loop.index < loop.length %}
+                ,
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    
+    {% if order_by %}
+        ORDER BY
+        {% for column, sort in order_by.items() %}
+            {% if '.' in column %}
+                {{ column.replace('.', '.`') }}`
+            {% else %}
+                `{{ column }}`
+            {% endif %}
+            {{ sort }}
+            {% if loop.index < loop.length %}
+                ,
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    
+    {% if (limit and limit != None) or (limit == 0) %}
+        LIMIT {{ limit }}
+        
+        {% if (offset and offset != None) or (offset == 0) %}
+            OFFSET {{ offset }}
+        {% endif %}
+    {% endif %}
