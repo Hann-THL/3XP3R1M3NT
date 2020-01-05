@@ -1,0 +1,23 @@
+{
+	"nullpoint_mariadb": {
+		"host": "",
+		"database": "",
+		"username": "",
+		"password": "",
+		"port": 3306
+	},
+	"dw_mysql": {
+		"host": "",
+		"database": "",
+		"username": "",
+		"password": "",
+		"port": 3306
+	},
+	"nocrm_mysql": {
+		"host": "",
+		"database": "",
+		"username": "",
+		"password": "",
+		"port": 30090
+	}
+}
